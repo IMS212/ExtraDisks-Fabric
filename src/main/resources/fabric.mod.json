@@ -2,17 +2,17 @@
   "schemaVersion": 1,
   "id": "extradisks",
   "version": "${version}",
-  "name": "Extra Disks",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Extra Disks (Unofficial Fabric Port)",
+  "description": "Extra Disks adds bigger disks to Refined Storage. This is an unofficial port.",
   "authors": [
-    "Me!"
+    "MelanX",
+    "IMS212"
   ],
+  "icon": "icon.png",
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "sources": "https://github.com/IMS212/ExtraDisks-Fabric"
   },
-  "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "license": "Apache-2.0",
   "accessWidener" : "extradisks.accesswidener",
   "environment": "*",
   "entrypoints": {
@@ -25,9 +25,8 @@
   ],
   "depends": {
     "java": ">=21",
+    "forgeconfigapiport": "*",
+    "refinedstorage": "*",
     "fabric-api": "*"
-  },
-  "suggests": {
-    "another-mod": "*"
   }
 }
