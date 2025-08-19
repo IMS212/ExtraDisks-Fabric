@@ -56,7 +56,7 @@ public class ExtraFluidStorageBlockProvider implements StorageBlockProvider {
     @Nonnull
     @Override
     public BlockEntityType<?> getBlockEntityType() {
-        return Registration.FLUID_STORAGE_TILE.get(this.variant).get();
+        return Registration.FLUID_STORAGE_TILE.get(this.variant);
     }
 
     @Nonnull

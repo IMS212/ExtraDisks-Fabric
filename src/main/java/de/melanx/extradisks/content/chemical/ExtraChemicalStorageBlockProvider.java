@@ -3,9 +3,6 @@ package de.melanx.extradisks.content.chemical;
 import com.refinedmods.refinedstorage.common.api.storage.SerializableStorage;
 import com.refinedmods.refinedstorage.common.api.storage.StorageBlockProvider;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceFactory;
-import com.refinedmods.refinedstorage.mekanism.ChemicalResourceFactory;
-import com.refinedmods.refinedstorage.mekanism.ChemicalResourceType;
-import com.refinedmods.refinedstorage.mekanism.content.Menus;
 import de.melanx.extradisks.ModConfig;
 import de.melanx.extradisks.Registration;
 import net.minecraft.network.chat.Component;
@@ -27,7 +24,7 @@ public class ExtraChemicalStorageBlockProvider implements StorageBlockProvider {
     @Nonnull
     @Override
     public SerializableStorage createStorage(@Nonnull Runnable runnable) {
-        return ChemicalResourceType.STORAGE_TYPE.create(this.variant.getCapacity(), runnable);
+        return null;//ChemicalResourceType.STORAGE_TYPE.create(this.variant.getCapacity(), runnable);
     }
 
     @Nonnull
@@ -50,18 +47,18 @@ public class ExtraChemicalStorageBlockProvider implements StorageBlockProvider {
     @Nonnull
     @Override
     public ResourceFactory getResourceFactory() {
-        return ChemicalResourceFactory.INSTANCE;
+        return null;//ChemicalResourceFactory.INSTANCE;
     }
 
     @Nonnull
     @Override
     public BlockEntityType<?> getBlockEntityType() {
-        return Registration.CHEMICAL_STORAGE_TILE.get(this.variant).get();
+        return Registration.CHEMICAL_STORAGE_TILE.get(this.variant);
     }
 
     @Nonnull
     @Override
     public MenuType<?> getMenuType() {
-        return Menus.getChemicalStorage();
+        return null;//Menus.getChemicalStorage();
     }
 }

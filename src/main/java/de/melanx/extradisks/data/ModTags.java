@@ -4,18 +4,23 @@ import com.refinedmods.refinedstorage.common.content.Tags;
 import de.melanx.extradisks.ExtraDisks;
 import de.melanx.extradisks.Registration;
 import de.melanx.extradisks.content.chemical.ExtraChemicalStorageVariant;
+import de.melanx.extradisks.content.fluid.ExtraFluidStorageDiskItem;
 import de.melanx.extradisks.content.fluid.ExtraFluidStorageVariant;
 import de.melanx.extradisks.content.item.ExtraItemStorageVariant;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.data.tags.TagsProvider;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.common.data.BlockTagsProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
@@ -48,7 +53,7 @@ public class ModTags {
         }
 
         private static TagKey<Block> tag(String name) {
-            return net.minecraft.tags.BlockTags.create(ResourceLocation.fromNamespaceAndPath("refinedstorage", name));
+            return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("refinedstorage", name));
         }
     }
 
@@ -77,8 +82,8 @@ public class ModTags {
         public static final Map<ExtraFluidStorageVariant, TagKey<Item>> DISKS_FLUID = new HashMap<>();
         public static final Map<ExtraChemicalStorageVariant, TagKey<Item>> DISKS_CHEMICAL = new HashMap<>();
 
-        public static final TagKey<Item> OSMIUM_INGOTS = net.minecraft.tags.ItemTags.create(ResourceLocation.fromNamespaceAndPath("c", "ingots/osmium"));
-        public static final TagKey<Item> CHEMICAL_STORAGE_DISKS = net.minecraft.tags.ItemTags.create(ResourceLocation.fromNamespaceAndPath("refinedstorage_mekanism_integration", "chemical_storage_disks"));
+        public static final TagKey<Item> OSMIUM_INGOTS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "ingots/osmium"));
+        public static final TagKey<Item> CHEMICAL_STORAGE_DISKS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("refinedstorage_mekanism_integration", "chemical_storage_disks"));
 
         static {
             for (ExtraItemStorageVariant variant : ExtraItemStorageVariant.values()) {
@@ -101,13 +106,17 @@ public class ModTags {
         }
 
         private static TagKey<Item> tag(String name) {
-            return net.minecraft.tags.ItemTags.create(ResourceLocation.fromNamespaceAndPath("refinedstorage", name));
+            return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("refinedstorage", name));
         }
     }
 
-    public static class BlockTags extends BlockTagsProvider {
-        public BlockTags(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider, ExistingFileHelper helper) {
-            super(output, lookupProvider, ExtraDisks.MODID, helper);
+    public static class BlockTags extends FabricTagProvider.BlockTagProvider {
+        public BlockTags(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
+            super(output, lookupProvider);
+        }
+
+        private <E extends Block> ResourceKey<E> keyOf(E extraFluidStorageDiskItem) {
+            return (ResourceKey) BuiltInRegistries.BLOCK.getResourceKey(extraFluidStorageDiskItem).orElseThrow();
         }
 
         @Override
@@ -115,33 +124,34 @@ public class ModTags {
             TagAppender<Block> itemBlocksBuilder = this.tag(Blocks.ITEM_STORAGE_BLOCKS);
             for (ExtraItemStorageVariant variant : ExtraItemStorageVariant.values()) {
                 TagKey<Block> tag = Blocks.STORAGE_BLOCKS_ITEM.get(variant);
-                this.tag(tag).add(Registration.ITEM_STORAGE_BLOCK.get(variant).get());
+                this.tag(tag).add(keyOf(Registration.ITEM_STORAGE_BLOCK.get(variant)));
                 itemBlocksBuilder.addTag(tag);
             }
 
             TagAppender<Block> fluidBlocksBuilder = this.tag(Blocks.FLUID_STORAGE_BLOCKS);
             for (ExtraFluidStorageVariant variant : ExtraFluidStorageVariant.values()) {
                 TagKey<Block> tag = Blocks.STORAGE_BLOCKS_FLUID.get(variant);
-                this.tag(tag).add(Registration.FLUID_STORAGE_BLOCK.get(variant).get());
+                this.tag(tag).add(keyOf(Registration.FLUID_STORAGE_BLOCK.get(variant)));
                 fluidBlocksBuilder.addTag(tag);
             }
 
             TagAppender<Block> chemicalBlocksBuilder = this.tag(Blocks.CHEMICAL_STORAGE_BLOCKS);
             for (ExtraChemicalStorageVariant variant : ExtraChemicalStorageVariant.values()) {
                 TagKey<Block> tag = Blocks.STORAGE_BLOCKS_CHEMICAL.get(variant);
-                this.tag(tag).addOptional(Registration.CHEMICAL_STORAGE_BLOCK.get(variant).getId());
-                chemicalBlocksBuilder.addOptionalTag(tag);
+                //this.tag(tag).addOptional(Registration.CHEMICAL_STORAGE_BLOCK.get(variant).getId());
+               // chemicalBlocksBuilder.addOptionalTag(tag);
             }
 
             //noinspection unchecked
-            this.tag(Blocks.STORAGE_BLOCKS).addTags(Blocks.ITEM_STORAGE_BLOCKS, Blocks.FLUID_STORAGE_BLOCKS);
-            this.tag(Blocks.STORAGE_BLOCKS).addOptionalTag(Blocks.CHEMICAL_STORAGE_BLOCKS);
+            this.tag(Blocks.STORAGE_BLOCKS).addTag(Blocks.ITEM_STORAGE_BLOCKS);
+            this.tag(Blocks.STORAGE_BLOCKS).addTag(Blocks.FLUID_STORAGE_BLOCKS);
+            //this.tag(Blocks.STORAGE_BLOCKS).addOptionalTag(Blocks.CHEMICAL_STORAGE_BLOCKS);
         }
     }
 
-    public static class ItemTags extends ItemTagsProvider {
-        public ItemTags(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider, CompletableFuture<TagsProvider.TagLookup<Block>> blockTags, ExistingFileHelper helper) {
-            super(output, lookupProvider, blockTags, ExtraDisks.MODID, helper);
+    public static class ItemTags extends FabricTagProvider.ItemTagProvider {
+        public ItemTags(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
+            super(output, lookupProvider);
         }
 
         @Override
@@ -150,11 +160,11 @@ public class ModTags {
             TagAppender<Item> itemDisksBuilder = this.tag(Items.ITEM_DISKS);
             for (ExtraItemStorageVariant variant : ExtraItemStorageVariant.values()) {
                 TagKey<Item> tag = Items.PARTS_ITEM.get(variant);
-                this.tag(tag).add(Registration.ITEM_STORAGE_PART.get(variant).get());
+                this.tag(tag).add(keyOf(Registration.ITEM_STORAGE_PART.get(variant)));
                 itemPartsBuilder.addTag(tag);
 
                 tag = Items.DISKS_ITEM.get(variant);
-                this.tag(tag).add(Registration.ITEM_STORAGE_DISK.get(variant).get());
+                this.tag(tag).add(keyOf(Registration.ITEM_STORAGE_DISK.get(variant)));
                 itemDisksBuilder.addTag(tag);
             }
 
@@ -162,11 +172,11 @@ public class ModTags {
             TagAppender<Item> fluidDisksBuilder = this.tag(Items.FLUID_DISKS);
             for (ExtraFluidStorageVariant variant : ExtraFluidStorageVariant.values()) {
                 TagKey<Item> tag = Items.PARTS_FLUID.get(variant);
-                this.tag(tag).add(Registration.FLUID_STORAGE_PART.get(variant).get());
+                this.tag(tag).add(keyOf(Registration.FLUID_STORAGE_PART.get(variant)));
                 fluidPartsBuilder.addTag(tag);
 
                 tag = Items.DISKS_FLUID.get(variant);
-                this.tag(tag).add(Registration.FLUID_STORAGE_DISK.get(variant).get());
+                this.tag(tag).add(keyOf(Registration.FLUID_STORAGE_DISK.get(variant)));
                 fluidDisksBuilder.addTag(tag);
             }
 
@@ -174,22 +184,26 @@ public class ModTags {
             TagAppender<Item> chemicalDisksBuilder = this.tag(Items.CHEMICAL_DISKS);
             for (ExtraChemicalStorageVariant variant : ExtraChemicalStorageVariant.values()) {
                 TagKey<Item> tag = Items.PARTS_CHEMICAL.get(variant);
-                this.tag(tag).addOptional(Registration.CHEMICAL_STORAGE_PART.get(variant).getId());
-                chemicalPartsBuilder.addOptionalTag(tag);
+                //this.tag(tag).addOptional(Registration.CHEMICAL_STORAGE_PART.get(variant));
+               // chemicalPartsBuilder.addOptionalTag(tag);
 
                 tag = Items.DISKS_CHEMICAL.get(variant);
-                this.tag(tag).addOptional(Registration.CHEMICAL_STORAGE_DISK.get(variant).getId());
-                chemicalDisksBuilder.addOptionalTag(tag);
+                //this.tag(tag).addOptional(Registration.CHEMICAL_STORAGE_DISK.get(variant).getId());
+               // chemicalDisksBuilder.addOptionalTag(tag);
             }
 
             //noinspection unchecked
-            this.tag(Items.PARTS).addTags(Items.ITEM_PARTS, Items.FLUID_PARTS, Items.CHEMICAL_PARTS);
+            this.tag(Items.PARTS).addTag(Items.ITEM_PARTS);
+            this.tag(Items.PARTS).addTag(Items.FLUID_PARTS);
+            this.tag(Items.PARTS).addTag(Items.CHEMICAL_PARTS);
             //noinspection unchecked
-            this.tag(Items.DISKS).addTags(Items.ITEM_DISKS, Items.FLUID_DISKS, Items.CHEMICAL_DISKS);
+            this.tag(Items.DISKS).addTag(Items.ITEM_DISKS);
+            this.tag(Items.DISKS).addTag(Items.FLUID_DISKS);
+            this.tag(Items.DISKS).addTag(Items.CHEMICAL_DISKS);
 
             this.tag(Tags.STORAGE_DISKS).addTag(Items.ITEM_DISKS);
             this.tag(Tags.FLUID_STORAGE_DISKS).addTag(Items.FLUID_DISKS);
-            this.tag(Items.CHEMICAL_STORAGE_DISKS).addOptionalTag(Items.CHEMICAL_DISKS);
+            this.tag(Items.CHEMICAL_STORAGE_DISKS).addTag(Items.CHEMICAL_DISKS);
 
             // blocks
             this.copy(Blocks.ITEM_STORAGE_BLOCKS, Items.ITEM_STORAGE_BLOCKS);
@@ -208,6 +222,10 @@ public class ModTags {
             }
 
             this.copy(Blocks.STORAGE_BLOCKS, Items.STORAGE_BLOCKS);
+        }
+
+        private <E extends Item> ResourceKey<E> keyOf(E extraFluidStorageDiskItem) {
+            return (ResourceKey) BuiltInRegistries.ITEM.getResourceKey(extraFluidStorageDiskItem).orElseThrow();
         }
     }
 }

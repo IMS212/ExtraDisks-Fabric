@@ -59,7 +59,7 @@ public class ExtraItemStorageBlockProvider implements StorageBlockProvider {
     @Nonnull
     @Override
     public BlockEntityType<?> getBlockEntityType() {
-        return Registration.ITEM_STORAGE_TILE.get(this.variant).get();
+        return Registration.ITEM_STORAGE_TILE.get(this.variant);
     }
 
     @Nonnull

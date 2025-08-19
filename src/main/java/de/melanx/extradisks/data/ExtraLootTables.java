@@ -1,10 +1,14 @@
 package de.melanx.extradisks.data;
 
 import com.refinedmods.refinedstorage.common.storage.storageblock.StorageBlock;
+import de.melanx.extradisks.ExtraDisks;
 import de.melanx.extradisks.Registration;
 import de.melanx.extradisks.loottable.ExtraStorageBlockLootFunction;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.block.Block;
@@ -13,33 +17,31 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
-import net.neoforged.neoforge.registries.DeferredHolder;
 
 import javax.annotation.Nonnull;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-public class ExtraLootTables extends BlockLootSubProvider {
+public class ExtraLootTables extends FabricBlockLootTableProvider {
 
-    public ExtraLootTables(HolderLookup.Provider provider) {
-        super(Set.of(), FeatureFlags.REGISTRY.allFlags(), provider);
+    protected ExtraLootTables(FabricDataOutput dataOutput, CompletableFuture<HolderLookup.Provider> registryLookup) {
+        super(dataOutput, registryLookup);
     }
+
+
 
     @Override
     public void generate() {
-        Registration.BLOCKS.getEntries().stream().map(DeferredHolder::get).forEach(block -> {
+        BuiltInRegistries.BLOCK.stream().filter(block -> {
+            return BuiltInRegistries.BLOCK.getKey(block).getNamespace().equalsIgnoreCase(ExtraDisks.MODID);
+        }).forEach(block -> {
             if (block instanceof StorageBlock) {
                 this.genBlockItemLootTableWithFunction(block, new ExtraStorageBlockLootFunction.Builder());
             } else {
                 this.dropSelf(block);
             }
         });
-    }
-
-    @Nonnull
-    @Override
-    protected Iterable<Block> getKnownBlocks() {
-        return Registration.BLOCKS.getEntries().stream().map(DeferredHolder::get).collect(Collectors.toSet());
     }
 
     private void genBlockItemLootTableWithFunction(Block block, ExtraStorageBlockLootFunction.Builder builder) {

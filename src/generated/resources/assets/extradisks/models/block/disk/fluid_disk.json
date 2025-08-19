@@ -1,6 +1,0 @@
-{
-  "parent": "refinedstorage:block/disk/disk",
-  "textures": {
-    "base": "extradisks:block/disk/fluid_disk"
-  }
-}

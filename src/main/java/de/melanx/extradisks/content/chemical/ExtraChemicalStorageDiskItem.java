@@ -9,9 +9,6 @@ import com.refinedmods.refinedstorage.common.api.support.HelpTooltipComponent;
 import com.refinedmods.refinedstorage.common.storage.StorageVariant;
 import com.refinedmods.refinedstorage.common.storage.UpgradeableStorageContainer;
 import com.refinedmods.refinedstorage.common.util.IdentifierUtil;
-import com.refinedmods.refinedstorage.mekanism.ChemicalResource;
-import com.refinedmods.refinedstorage.mekanism.ChemicalResourceType;
-import com.refinedmods.refinedstorage.mekanism.MekanismIntegrationIdentifierUtil;
 import de.melanx.extradisks.Registration;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
@@ -24,14 +21,14 @@ import java.util.Optional;
 public class ExtraChemicalStorageDiskItem extends AbstractStorageContainerItem implements UpgradeableStorageContainer {
 
     private final ExtraChemicalStorageVariant variant;
-    private final Component helpText;
+    //private final Component helpText;
 
     public ExtraChemicalStorageDiskItem(ExtraChemicalStorageVariant variant) {
         super(new Properties().stacksTo(1), RefinedStorageApi.INSTANCE.getStorageContainerItemHelper());
         this.variant = variant;
-        this.helpText = variant.getCapacity() == null
-                ? MekanismIntegrationIdentifierUtil.createMekanismIntegrationTranslation("item", "creative_chemical_storage_disk.help")
-                : MekanismIntegrationIdentifierUtil.createMekanismIntegrationTranslation("item", "chemical_storage_disk.help", IdentifierUtil.format(variant.getCapacity()));
+        //this.helpText = variant.getCapacity() == null
+        //        ? MekanismIntegrationIdentifierUtil.createMekanismIntegrationTranslation("item", "creative_chemical_storage_disk.help")
+        //        : MekanismIntegrationIdentifierUtil.createMekanismIntegrationTranslation("item", "chemical_storage_disk.help", IdentifierUtil.format(variant.getCapacity()));
     }
 
     @Nullable
@@ -43,13 +40,13 @@ public class ExtraChemicalStorageDiskItem extends AbstractStorageContainerItem i
     @Nonnull
     @Override
     protected String formatAmount(long amount) {
-        return RefinedStorageClientApi.INSTANCE.getResourceRendering(ChemicalResource.class).formatAmount(amount);
+       return null;// return RefinedStorageClientApi.INSTANCE.getResourceRendering(ChemicalResource.class).formatAmount(amount);
     }
 
     @Nonnull
     @Override
     protected SerializableStorage createStorage(StorageRepository storageRepository) {
-        return ChemicalResourceType.STORAGE_TYPE.create(this.variant.getCapacity(), storageRepository::markAsChanged);
+       return null;// return ChemicalResourceType.STORAGE_TYPE.create(this.variant.getCapacity(), storageRepository::markAsChanged);
     }
 
     @Nonnull
@@ -67,7 +64,7 @@ public class ExtraChemicalStorageDiskItem extends AbstractStorageContainerItem i
     @Nonnull
     @Override
     public Optional<TooltipComponent> getTooltipImage(@Nonnull ItemStack stack) {
-        return Optional.of(new HelpTooltipComponent(this.helpText));
+        return Optional.empty();
     }
 
     @Nonnull

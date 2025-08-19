@@ -1,8 +1,21 @@
 plugins {
-    id 'org.moddingx.modgradle.meta' version '5.0.2'
+    id 'fabric-loom' version "${loom_version}"
+    id 'maven-publish'
+}
+
+version = project.mod_version
+group = "de.melanx"
+
+base {
+    archivesName = "extradisks"
 }
 
 repositories {
+    // Add repositories to retrieve artifacts from in here.
+    // You should only use this when depending on other mods because
+    // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
+    // See https://docs.gradle.org/current/userguide/declaring_repositories.html
+    // for more information about repositories.
     maven {
         url = 'https://maven.pkg.github.com/refinedmods/refinedstorage2'
         credentials {
@@ -18,77 +31,95 @@ repositories {
         name = 'EMI'
         url = 'https://maven.terraformersmc.com/'
     }
+    maven { url "https://maven.shedaniel.me/" }
+    maven { url "https://maven.terraformersmc.com/releases/" }
+    maven {
+        name = "Fuzs Mod Resources"
+        url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/"
+    }
 }
 
-var dev = System.getenv('IS_DEV')?.toBoolean() ?: false
+loom {
+    mods {
+        "modid" {
+            sourceSet sourceSets.main
+        }
+    }
+
+    accessWidenerPath = file("src/main/resources/extradisks.accesswidener")
+
+}
 var baseVersion = '21.1'
 var jeiVersion = '19.21.0.247'
 var mekanismVersion = '1.21.1-10.7.7.64'
 var rsmekanismVersion = '1.0.0'
-var rsVersion = '2.0.0-beta.2'
+var rsVersion = '2.0.0-beta.9'
 var modBaseVersion = '1.21.1-4.0'
-mod.configure {
-    modid 'extradisks'
-    group 'de.melanx'
-    versioning {
-        if (dev) {
-            def gitCommitHash = ['git', 'rev-parse', 'HEAD'].execute().text.trim()
-            constant baseVersion + (gitCommitHash ? "-${gitCommitHash}" : '')
-        } else {
-            base modBaseVersion
-            maven 'https://maven.melanx.de/release'
-        }
-    }
+dependencies {
+    // To change the versions see the gradle.properties file
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-    neoforge project.hasProperty('neo_version') ? project.neo_version : "${baseVersion}.118"
+    // Fabric API. This is technically optional, but you probably want it anyway.
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    modImplementation "com.refinedmods.refinedstorage:refinedstorage-fabric:${rsVersion}"
+    modRuntimeOnly "mezz.jei:jei-1.${baseVersion}-fabric:${jeiVersion}"
+    modApi "fuzs.forgeconfigapiport:forgeconfigapiport-fabric:21.1.4"
 
-    license 'The Apache License, Version 2.0'
-    github 'ChaoticTrials/ExtraDisks'
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+}
 
-    artifacts {
-        sources {
-            publishToRepositories()
-        }
-    }
-
-    changelog {
-        def lines = defaultChangelog.toString().split('\n')
-        def filteredChangelog = lines.findAll { !it.startsWith('- [[meta]') }.join('\n')
-
-        return filteredChangelog
-    }
-
-
-    publishing {
-        maven {
-            name 'melanx'
-            url 'https://maven.melanx.de/release'
-            credentials(PasswordCredentials)
-        }
-    }
-
-    upload {
-        all {
-            type 'beta'
-            require 'refined-storage'
-            optional 'refined-storage-mekanism-integration'
-        }
-        curseforge {
-            projectId 351491
-        }
-        modrinth {
-            projectId 'Tlo2tahX'
-        }
+fabricApi {
+    configureDataGeneration() {
+        client = true
     }
 }
 
-dependencies {
-    implementation "com.refinedmods.refinedstorage:refinedstorage-neoforge:${rsVersion}"
+processResources {
+    inputs.property "version", project.version
 
-    implementation "com.refinedmods.refinedstorage:refinedstorage-mekanism-integration:${rsmekanismVersion}"
+    filesMatching("fabric.mod.json") {
+        expand "version": inputs.properties.version
+    }
+}
 
-//    compileOnlyApi("mekanism:Mekanism:${mekanismVersion}:api")
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
+}
 
-    implementation "mekanism:Mekanism:${mekanismVersion}:all"
-    runtimeOnly "mezz.jei:jei-1.${baseVersion}-neoforge:${jeiVersion}"
+java {
+    // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+    // if it is present.
+    // If you remove this line, sources will not be generated.
+    withSourcesJar()
+
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+    inputs.property "archivesName", project.base.archivesName
+
+    from("LICENSE") {
+        rename { "${it}_${inputs.properties.archivesName}"}
+    }
+}
+
+// configure the maven publication
+publishing {
+    publications {
+        create("mavenJava", MavenPublication) {
+            artifactId = "extradisks"
+            from components.java
+        }
+    }
+
+    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+    repositories {
+        // Add repositories to publish to here.
+        // Notice: This block does NOT have the same function as the block in the top level.
+        // The repositories here will be used for publishing your artifact, not for
+        // retrieving dependencies.
+    }
 }
